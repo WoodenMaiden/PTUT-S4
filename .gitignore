@@ -1,2 +1,8 @@
-src/*sdk*
-src/POI
+src/javafx-sdk-15.0.1/
+src/POI/
+out/
+.idea/
+.idea_modules/
+*.iml
+*.ipr
+*.iws
