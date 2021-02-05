@@ -1,0 +1,8 @@
+src/javafx-sdk-15.0.1/* merge=ours
+src/POI/* merge=ours
+out/* merge=ours
+.idea/* merge=ours
+.idea_modules/* merge=ours
+*.iml merge=ours
+*.ipr merge=ours
+*.iws merge=ours
