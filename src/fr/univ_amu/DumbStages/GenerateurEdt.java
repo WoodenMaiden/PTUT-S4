@@ -1,14 +1,13 @@
 package fr.univ_amu.DumbStages;
 
 
-import com.sun.javafx.fxml.expression.Expression;
 import fr.univ_amu.DumbStages.donnees.Entreprise;
 import fr.univ_amu.DumbStages.donnees.Etudiant;
+
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.*;
 
 
@@ -16,7 +15,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
-import java.util.Scanner;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -381,7 +379,7 @@ public class GenerateurEdt {
 
             int cpt = 0;
 
-            System.out.println("\nnb places : " + nb_entretiens_et);
+            System.out.println("\nnb entretiens : " + nb_entretiens_et);
 
             for (int i = 0; i < mesEntreprises.size() * nb_places_necessaires; ++i) {
 
@@ -510,6 +508,95 @@ public class GenerateurEdt {
         //////////////////////////////////////////////
 
 
+        /////////////////////////////////////////
+        // remplissage des étudiants manquants //
+        /////////////////////////////////////////
+
+            // ici on regarde les étudiants qui n'ont pas toutes leurs entreprises et ces dernières
+
+            // l'index de cet array correspond à l'index de mesEtudiants
+            int[] cpt_entreprises_manquantes = new int[this.mesEtudiants.size()];
+
+            // liste des indexs des entreprises manquantes, l'index de cet array correspond à l'index de mesEtudiants, les nombres dans la string ceux de mesEntreprises
+            String[] liste_entreprises_manquantes = new String[this.mesEtudiants.size()];
+
+            for (int y = 1; y < maFeuille.getLastRowNum(); ++y){
+                for(int x = 1; x < this.nombreHoraires + 1; ++x){
+
+                    XSSFCell cetteCellule = maFeuille.getRow(y).getCell(x);
+
+                    if (cetteCellule != null && cetteCellule.getCellType() == CellType.STRING) {
+                        if (!cetteCellule.getStringCellValue().isEmpty() && !cetteCellule.getStringCellValue().isBlank()) {
+
+                            //on va chercher l'index de l'étudiant
+                            String nom = cetteCellule.getStringCellValue();
+                            int i = -1;
+                            for (Etudiant et : this.mesEtudiants) {
+                                ++i;
+                                if (nom.equals(this.mesEtudiants.get(i).getNom() + " " + this.mesEtudiants.get(i).getPrenom())) break;
+                            }
+
+                            ++cpt_entreprises_manquantes[i];
+                            System.out.println("incrémentation à l'indexe " + i + " : " + cpt_entreprises_manquantes[i] + ". Etudiant : " + nom + ". vide : " + cetteCellule.getStringCellValue().isEmpty() + " " + cetteCellule.getStringCellValue().isBlank());
+
+                        }
+                    }
+                }
+            }
+
+
+
+            // on calcule le nommbre d'entreprises manquantes
+            for(int i = 0; i < cpt_entreprises_manquantes.length; ++i)
+                cpt_entreprises_manquantes[i] = nb_entretiens_et - cpt_entreprises_manquantes[i];
+
+            /*
+            System.out.print("{");
+            for(int I : cpt_entreprises_manquantes)
+                System.out.print(I + ", ");
+            System.out.println("}");
+
+
+            System.out.print("{");
+            for(String I : liste_entreprises_manquantes)
+                System.out.print(I + ", ");
+            System.out.println("}");*/
+
+
+            boolean remplissageFini = true;
+            int i = 0;
+
+            //tant que tout le monde n'a pas été placé
+            while (true){
+
+                while(i < cpt_entreprises_manquantes.length) {
+                    if (cpt_entreprises_manquantes[i] != 0) {
+                        remplissageFini = false;
+                        break;
+                    }
+                }
+
+                if(remplissageFini) break;
+
+                //ici on stocke la dernière ligne
+                int r = maFeuille.getLastRowNum() - 1;
+
+                //on va insérer une ligne
+                XSSFRow nouvelleLigne = maFeuille.createRow(maFeuille.getLastRowNum());
+
+                // de bas en haut
+                for (; r > 0; --r){
+                    for (int c = 1; c < this.nombreHoraires + 1; ++c){
+
+                    }
+                }
+            }
+
+
+        /////////////////////////////////////////////
+        // fin remplissage des étudiants manquants //
+        /////////////////////////////////////////////
+
 
         /////////////////////////////////////
         // création de l'edt des étudiants //
@@ -588,9 +675,7 @@ public class GenerateurEdt {
     }
 
     public static void main(String[] args) throws Exception {
-        GenerateurEdt G = new GenerateurEdt("/home/yann/Bureau/testmat.xlsx", "/home/yann/Bureau", 5);
+        GenerateurEdt G = new GenerateurEdt("/home/yann/Documents/Tableau Etudiant Entreprises Apres-Midi.xlsx", "/home/yann/Bureau", 5);
         G.run();
     }
-
-
 }
