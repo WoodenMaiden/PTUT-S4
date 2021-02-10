@@ -14,6 +14,7 @@ import org.apache.poi.xssf.usermodel.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Random;
 import java.util.HashMap;
 import java.util.Vector;
@@ -536,6 +537,12 @@ public class GenerateurEdt {
                                 if (nom.equals(this.mesEtudiants.get(i).getNom() + " " + this.mesEtudiants.get(i).getPrenom())) break;
                             }
 
+                            /*i = -1;
+                            for(Entreprise en : this.mesEntreprises){
+                                ++i;
+
+                            }*/
+
                             ++cpt_entreprises_manquantes[i];
                             System.out.println("incrémentation à l'indexe " + i + " : " + cpt_entreprises_manquantes[i] + ". Etudiant : " + nom + ". vide : " + cetteCellule.getStringCellValue().isEmpty() + " " + cetteCellule.getStringCellValue().isBlank());
 
@@ -565,6 +572,7 @@ public class GenerateurEdt {
 
             boolean remplissageFini = true;
             int i = 0;
+            CellCopyPolicy policy = new CellCopyPolicy();
 
             //tant que tout le monde n'a pas été placé
             while (true){
@@ -586,8 +594,12 @@ public class GenerateurEdt {
 
                 // de bas en haut
                 for (; r > 0; --r){
-                    for (int c = 1; c < this.nombreHoraires + 1; ++c){
+                    for (int c = 0; c < this.nombreHoraires + 1; ++c){
+                        XSSFCell aDecaler = maFeuille.getRow(r).getCell(c);
+                        XSSFCell destination = maFeuille.getRow(r+1).getCell(c);
 
+
+                        destination.copyCellFrom(aDecaler, policy);
                     }
                 }
             }
