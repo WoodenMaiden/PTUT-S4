@@ -14,10 +14,7 @@ import org.apache.poi.xssf.usermodel.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Locale;
-import java.util.Random;
-import java.util.HashMap;
-import java.util.Vector;
+import java.util.*;
 
 public class GenerateurEdt {
 
@@ -520,6 +517,9 @@ public class GenerateurEdt {
 
             // liste des indexs des entreprises manquantes, l'index de cet array correspond à l'index de mesEtudiants, les nombres dans la string ceux de mesEntreprises
             String[] liste_entreprises_manquantes = new String[this.mesEtudiants.size()];
+            for (int i = 0; i < liste_entreprises_manquantes.length; ++i)
+                liste_entreprises_manquantes[i] = "";
+
 
             for (int y = 1; y < maFeuille.getLastRowNum(); ++y){
                 for(int x = 1; x < this.nombreHoraires + 1; ++x){
@@ -544,7 +544,7 @@ public class GenerateurEdt {
                             }*/
 
                             ++cpt_entreprises_manquantes[i];
-                            System.out.println("incrémentation à l'indexe " + i + " : " + cpt_entreprises_manquantes[i] + ". Etudiant : " + nom + ". vide : " + cetteCellule.getStringCellValue().isEmpty() + " " + cetteCellule.getStringCellValue().isBlank());
+                            //System.out.println("incrémentation à l'indexe " + i + " : " + cpt_entreprises_manquantes[i] + ". Etudiant : " + nom + ". vide : " + cetteCellule.getStringCellValue().isEmpty() + " " + cetteCellule.getStringCellValue().isBlank());
 
                         }
                     }
@@ -553,7 +553,7 @@ public class GenerateurEdt {
 
 
 
-            // on calcule le nommbre d'entreprises manquantes
+            // on calcule le nombre d'entreprises manquantes
             for(int i = 0; i < cpt_entreprises_manquantes.length; ++i)
                 cpt_entreprises_manquantes[i] = nb_entretiens_et - cpt_entreprises_manquantes[i];
 
@@ -569,13 +569,46 @@ public class GenerateurEdt {
                 System.out.print(I + ", ");
             System.out.println("}");*/
 
+            //on va re-remplir la deuxième matrice
+            for (short[] l : matrice_de_choix){
+                Vector<Short> ligne = new Vector<Short>();
+                for (short s : l) ligne.add(s);
+                matrice2.add(ligne);
+            }
+
+            System.out.println(matrice2.toString());
+
+            //on les listes
+
+            for(int indice_str = 0; indice_str < liste_entreprises_manquantes.length; ++indice_str) {
+
+                for (short e = 1; e < nb_entretiens_et + 1; ++e){
+                    liste_entreprises_manquantes[indice_str] += "," + matrice2.get(indice_str).indexOf(e);
+                }
+
+
+                liste_entreprises_manquantes[indice_str] = liste_entreprises_manquantes[indice_str].substring(1); // on enlève la virgule du début
+                /*s = (nb_entretiens_et) -> {
+
+                };*/
+            }
+
+            System.out.print("{");
+            for(String s : liste_entreprises_manquantes)
+                System.out.print(s + "|");
+            System.out.println("}");
+
+            for (int i : cpt_entreprises_manquantes){
+
+            }
+
 
             boolean remplissageFini = true;
             int i = 0;
             CellCopyPolicy policy = new CellCopyPolicy();
 
             //tant que tout le monde n'a pas été placé
-            while (true){
+            /*while (true){
 
                 while(i < cpt_entreprises_manquantes.length) {
                     if (cpt_entreprises_manquantes[i] != 0) {
@@ -596,13 +629,13 @@ public class GenerateurEdt {
                 for (; r > 0; --r){
                     for (int c = 0; c < this.nombreHoraires + 1; ++c){
                         XSSFCell aDecaler = maFeuille.getRow(r).getCell(c);
-                        XSSFCell destination = maFeuille.getRow(r+1).getCell(c);
+                        XSSFCell destination = nouvelleLigne.getCell(c);
 
 
                         destination.copyCellFrom(aDecaler, policy);
                     }
                 }
-            }
+            }*/
 
 
         /////////////////////////////////////////////
