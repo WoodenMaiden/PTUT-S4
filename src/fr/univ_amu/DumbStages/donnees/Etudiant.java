@@ -1,9 +1,9 @@
 package fr.univ_amu.DumbStages.donnees;
 
 public class Etudiant {
-    private String Nom;
-    private String Prenom;
-    private String Groupe;
+    private final String Nom;
+    private final String Prenom;
+    private final String Groupe;
 
     public Etudiant(String nom, String prenom, String groupe) {
         Nom = nom;
@@ -11,15 +11,15 @@ public class Etudiant {
         Groupe = groupe;
     }
 
-    public String getNom() {
+    public final String getNom() {
         return Nom;
     }
 
-    public String getPrenom() {
+    public final String getPrenom() {
         return Prenom;
     }
 
-    public String getGroupe() {
+    public final String getGroupe() {
         return Groupe;
     }
 }

@@ -1,6 +1,5 @@
 package fr.univ_amu.DumbStages;
 
-import java.io.FileWriter;
 import java.io.IOException;
 
 //Generateur qui ajoute le css dans le HTML

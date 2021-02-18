@@ -1,9 +1,9 @@
 package fr.univ_amu.DumbStages.donnees;
 
-public class    Entreprise {
+public class Entreprise {
 
     private String nom_en;
-    private String[] representants;
+    private final String[] representants;
     private String url;
     private String lienZoom;
     private String mdpZoom;

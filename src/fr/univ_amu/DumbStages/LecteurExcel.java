@@ -1,12 +1,11 @@
 package fr.univ_amu.DumbStages;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
-import java.util.Scanner;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import fr.univ_amu.DumbStages.donnees.Entreprise;
 import fr.univ_amu.DumbStages.donnees.Etudiant;
@@ -22,16 +21,16 @@ public class LecteurExcel {
 
     private XSSFWorkbook monExcel;
     private int nbEtudiants = 0;
-    private Vector<Integer> groupes;
+    private List<Integer> groupes;
     private static String desktopPath;
 
-    public static Vector<fr.univ_amu.DumbStages.donnees.Entreprise> mesEntreprisesMatin = new Vector<fr.univ_amu.DumbStages.donnees.Entreprise>();
-    public static Vector<fr.univ_amu.DumbStages.donnees.Entreprise> mesEntreprisesApresMidi = new Vector<fr.univ_amu.DumbStages.donnees.Entreprise>();
-    public static Vector<fr.univ_amu.DumbStages.donnees.Etudiant> mesEtudiants = new Vector<fr.univ_amu.DumbStages.donnees.Etudiant>();
+    public static List<Entreprise> mesEntreprisesMatin = new ArrayList<Entreprise>();
+    public static List<Entreprise> mesEntreprisesApresMidi = new ArrayList<Entreprise>();
+    public static List<Etudiant> mesEtudiants = new ArrayList<Etudiant>();
 
     public LecteurExcel(String path) throws IOException, InvalidFormatException {
         this.monExcel = new XSSFWorkbook(new java.io.File(path));
-        this.groupes = new Vector<Integer>();
+        this.groupes = new ArrayList<Integer>();
     }
 
     public XSSFWorkbook getFichier(){
@@ -68,7 +67,7 @@ public class LecteurExcel {
             }
     } //verifierEtIncrementerNombreDeGroupe
 
-    public static void generateMesEntreprises(Vector<Entreprise> mesEntreprises, LecteurExcel lecteur, String desktopPathHtml,int sheetNumber) throws IOException {
+    public static void generateMesEntreprises(List<Entreprise> mesEntreprises, LecteurExcel lecteur, String desktopPathHtml,int sheetNumber) throws IOException {
         XSSFSheet mySheet = lecteur.getFichier().getSheetAt(sheetNumber);
 
         for(Row row: mySheet)
@@ -117,7 +116,7 @@ public class LecteurExcel {
         }
     }   //GenerateEtudiantsFromExcel
 
-    public static void generateFiles(Vector<Entreprise> mesEntreprises, LecteurExcel monLecteur,String endFile) throws IOException {
+    public static void generateFiles(List<Entreprise> mesEntreprises, LecteurExcel monLecteur,String endFile) throws IOException {
 
         //Génération des étudiants dans le vecteur mesEtudiants
         LecteurExcel.generateEtudiantsFromExcel(monLecteur);
@@ -165,7 +164,7 @@ public class LecteurExcel {
 
             //Génération des entreprises sur la première ligne
             for (int i = 0; i < mesEntreprises.size(); ++i) {
-                row.createCell(i + 2).setCellValue(mesEntreprises.elementAt(i).getNom_en());
+                row.createCell(i + 2).setCellValue(mesEntreprises.get(i).getNom_en());
                 row.getCell(i + 2).setCellStyle(borderedCellStyle);
                 sheet.autoSizeColumn(i + 2);
             }
@@ -200,9 +199,9 @@ public class LecteurExcel {
         try {
 
             //Réinitialisation des variables d'entreprises et d'étudiants pour une nouvelle génération
-            mesEntreprisesMatin = new Vector<fr.univ_amu.DumbStages.donnees.Entreprise>();
-            mesEntreprisesApresMidi = new Vector<fr.univ_amu.DumbStages.donnees.Entreprise>();
-            mesEtudiants = new Vector<fr.univ_amu.DumbStages.donnees.Etudiant>();
+            mesEntreprisesMatin = new ArrayList<Entreprise>();
+            mesEntreprisesApresMidi = new ArrayList<Entreprise>();
+            mesEtudiants = new ArrayList<Etudiant>();
 
             System.out.println("Excel en cours d'accès");
             // Variable chemin du bureau
