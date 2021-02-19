@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class GenerateurEdt {
 
@@ -253,7 +254,7 @@ public class GenerateurEdt {
         }
 
         for (Entreprise entr : mesEntreprises)
-            System.out.print(entr.getNom_en() + " ");
+            System.out.print(entr.getNom_en() + " | ");
 
 
         ///////////////////////////////////////
@@ -557,17 +558,11 @@ public class GenerateurEdt {
             for(int i = 0; i < cpt_entreprises_manquantes.length; ++i)
                 cpt_entreprises_manquantes[i] = nb_entretiens_et - cpt_entreprises_manquantes[i];
 
-            /*
-            System.out.print("{");
+
+            System.out.print("cpt entreprises manquantes : {");
             for(int I : cpt_entreprises_manquantes)
                 System.out.print(I + ", ");
             System.out.println("}");
-
-
-            System.out.print("{");
-            for(String I : liste_entreprises_manquantes)
-                System.out.print(I + ", ");
-            System.out.println("}");*/
 
             //on va re-remplir la deuxième matrice
             for (short[] l : matrice_de_choix){
@@ -578,29 +573,44 @@ public class GenerateurEdt {
 
             System.out.println(matrice2.toString());
 
-            //on les listes
 
+            //on les listes
+            String contenu;
             for(int indice_str = 0; indice_str < liste_entreprises_manquantes.length; ++indice_str) {
 
+                contenu = liste_entreprises_manquantes[indice_str];
+
                 for (short e = 1; e < nb_entretiens_et + 1; ++e){
-                    liste_entreprises_manquantes[indice_str] += "," + matrice2.get(indice_str).indexOf(e);
+                    contenu += "," + matrice2.get(indice_str).indexOf(e);
                 }
 
+                contenu = contenu.substring(1); // on enlève la virgule du début
 
-                liste_entreprises_manquantes[indice_str] = liste_entreprises_manquantes[indice_str].substring(1); // on enlève la virgule du début
-                /*s = (nb_entretiens_et) -> {
+                int i = contenu.length();
 
-                };*/
+                if (cpt_entreprises_manquantes[indice_str] > 0 ){ // si il manque à l'étudiant des entreprises (donc un nombre > 0) on enlève de la liste toutes celles qu'il a déja en entretien ...
+                    for (int nb = 0; nb < cpt_entreprises_manquantes[indice_str]; ++nb){
+                        if (i < 0) break;
+                        else if (i == 0) contenu = "";
+                        /*else contenu = contenu.substring(0, i);
+
+                        i -= 2;*/
+                        else i -=2;
+                    }
+                    contenu = contenu.substring(i); //on garde seulement les derniers chiffres car ce sont ceux qui manquent
+                    if (contenu.charAt(0) == ',') contenu = contenu.substring(1); //on check si le premier caractère est une virgule
+                }
+                else contenu = ""; // sinon il les à toutes et on ne liste donc aucune entreprise manquante
+
+
+                liste_entreprises_manquantes[indice_str] = contenu ;
+                //System.out.println(liste_entreprises_manquantes[indice_str]);
             }
 
-            System.out.print("{");
+            System.out.print("liste entreprises manquantes : {");
             for(String s : liste_entreprises_manquantes)
                 System.out.print(s + "|");
             System.out.println("}");
-
-            for (int i : cpt_entreprises_manquantes){
-
-            }
 
 
             boolean remplissageFini = true;
