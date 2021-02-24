@@ -496,9 +496,6 @@ public class GenerateurEdt {
 
             }// while(estFini == true)
 
-            //Todo créer l'edt inversé pour chaque étudiant
-
-
             matrice2.clear();
 
 
@@ -592,9 +589,6 @@ public class GenerateurEdt {
                     for (int nb = 0; nb < cpt_entreprises_manquantes[indice_str]; ++nb){
                         if (i < 0) break;
                         else if (i == 0) contenu = "";
-                        /*else contenu = contenu.substring(0, i);
-
-                        i -= 2;*/
                         else i -=2;
                     }
                     contenu = contenu.substring(i); //on garde seulement les derniers chiffres car ce sont ceux qui manquent
@@ -612,13 +606,48 @@ public class GenerateurEdt {
                 System.out.print(s + "|");
             System.out.println("}");
 
+            int[][] places = new int[this.mesEntreprises.size()][this.nombreHoraires];
+            //on va lister les horaires qui ont plus de 33% de vide afin de répartir
+            for (int range = 0; range < mesCellulesFusionnees.size(); ++range){ // pour toutes les entreprises
 
+                for (int h = 1; h < this.nombreHoraires + 1; ++h) { //pour toutes les horaires
+                    for (CellAddress CA : mesCellulesFusionnees.get(range)) { //pour toutes les places d'entreprise
+
+                        // ici on récupère le numero de la ligne pour la suite (c'est pas possible de le faire en oneshot)
+                        int r = CA.getRow();
+
+                        //si c'est pas null ...
+                        if (maFeuille.getRow(r).getCell(h) != null) {
+                            //... on regarde si c'est vide
+                            if (maFeuille.getRow(r).getCell(h).getStringCellValue().isBlank() ||
+                                    maFeuille.getRow(r).getCell(h).getStringCellValue().isEmpty()) continue; // si c'est ke cas on passe au suivant
+                            //sinon on le note
+                            else ++places[range][h-1];
+
+                        }
+                        else continue; //si c'est null on passe au suivant
+                    }
+                }
+
+
+            }
+
+            // affichons les places par horaires
+            for (int[] l : places) {
+                for (int c : l)
+                    System.out.print("|" + c + "|");
+                System.out.println();
+            }
+            System.out.println();
+
+            
+            /*
             boolean remplissageFini = true;
             int i = 0;
             CellCopyPolicy policy = new CellCopyPolicy();
 
             //tant que tout le monde n'a pas été placé
-            /*while (true){
+            while (true){
 
                 while(i < cpt_entreprises_manquantes.length) {
                     if (cpt_entreprises_manquantes[i] != 0) {
