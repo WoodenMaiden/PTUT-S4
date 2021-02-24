@@ -640,7 +640,38 @@ public class GenerateurEdt {
             }
             System.out.println();
 
-            
+            String list;
+            int ent;
+            int horaire_moins_peuple = 0; // index de l'horaire le moins peuplé
+
+            // pour tous les etudiants qui n'ont pas toutes leurs entreprises (<=0) ...
+            for(int et = 0; et < cpt_entreprises_manquantes.length; ++ et){
+                if (cpt_entreprises_manquantes[et] <= 0) continue;
+
+                // ici on récupère les entreprises qui manquent
+                list = liste_entreprises_manquantes[et];
+                Scanner sc = new Scanner (list);
+                //TODO compléter
+
+                // on déplace quelqu'un là ou il y a le plus de place vers là ou il y a le moins de places
+                for (sc.useDelimiter(",") ; sc.hasNextInt(); ){
+                    //TODO tester le scanner sur un autre projet pour voir si la regex renseignée est bonne
+                    ent = sc.nextInt();
+
+                    // ici on va chercher l'horaire le moins peuplé de l'array places
+                    for (int i = 0; i < places.length; ++i) {
+                        if (places[ent][i] < places[ent][horaire_moins_peuple]) horaire_moins_peuple = i;
+                    }
+
+                    //TODO échanger les 2 étudiants de place 
+
+                }
+
+
+
+                // on remplace l'étudiant de base par celui a qui il manque l'entreprise
+
+            }
             /*
             boolean remplissageFini = true;
             int i = 0;
