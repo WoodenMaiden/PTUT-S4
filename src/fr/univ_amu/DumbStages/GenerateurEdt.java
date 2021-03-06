@@ -642,29 +642,69 @@ public class GenerateurEdt {
 
             String list;
             int ent;
-            int horaire_moins_peuple = 0; // index de l'horaire le moins peuplé
+            int horaire_moins_peuple =0, horaire_plus_peuple = 0; // index de l'horaire le moins peuplé et index de l'horaire le moins peuplé
+            String etu_a_placer, etu_a_deplacer = null; // texte des cellules;
+            XSSFCell cell_a_modifier = null, cell_a_ajouter = null;
 
             // pour tous les etudiants qui n'ont pas toutes leurs entreprises (<=0) ...
             for(int et = 0; et < cpt_entreprises_manquantes.length; ++ et){
                 if (cpt_entreprises_manquantes[et] <= 0) continue;
 
+                etu_a_placer = mesEtudiants.get(et).getNom() + " " + mesEtudiants.get(et).getPrenom();
+
                 // ici on récupère les entreprises qui manquent
                 list = liste_entreprises_manquantes[et];
                 Scanner sc = new Scanner (list);
-                //TODO compléter
 
                 // on déplace quelqu'un là ou il y a le plus de place vers là ou il y a le moins de places
                 for (sc.useDelimiter(",") ; sc.hasNextInt(); ){
                     //TODO tester le scanner sur un autre projet pour voir si la regex renseignée est bonne
                     ent = sc.nextInt();
+//                    System.out.println("entreprise :" + ent);
 
-                    // ici on va chercher l'horaire le moins peuplé de l'array places
+                    // ici on va chercher l'horaire le moins peuplé et le plus peuplé (la première ocurence) de l'array places
                     for (int i = 0; i < places.length; ++i) {
-                        if (places[ent][i] < places[ent][horaire_moins_peuple]) horaire_moins_peuple = i;
+                        if (places[ent][i] < places[ent][horaire_moins_peuple] && places[ent][i] < nb_places_necessaires) horaire_moins_peuple = i;
+                        if (places[ent][i] > places[ent][horaire_plus_peuple]) horaire_plus_peuple = i;
                     }
 
-                    //TODO échanger les 2 étudiants de place 
+                    //si la colonne la moins peuplée est la dernière et est pleine on ne peut placer personne
+                    //TODO réfléchir à ca -> ajouter une ligne ?
+                    if (places[ent][horaire_moins_peuple] == places[ent][horaire_plus_peuple] && horaire_moins_peuple == places.length-1) continue;
 
+                    //TODO échanger les 2 étudiants de place 
+                    //on choisit un étudiant au hasard
+                    Random rand = new Random();
+                    int choix_random = rand.nextInt(places[ent][horaire_moins_peuple]);
+                    while(cpt_entreprises_manquantes[choix_random] > 0) choix_random = rand.nextInt(places[ent][horaire_moins_peuple]); // on s'assue que l'étudiant choisi a bien toutes ses entreprises
+
+                    //on va chercher la cellule a modifier
+                    int i = 0;
+                    for(CellAddress CA : mesCellulesFusionnees.get(ent)){
+                        int r = CA.getRow();
+                        if (i < choix_random) ++i;
+                        else {
+                            cell_a_modifier = maFeuille.getRow(r).getCell(horaire_plus_peuple);
+                            etu_a_deplacer = cell_a_modifier.getStringCellValue();
+                            break;
+                        }
+                    }
+
+                    // on va cherche la cellule à insérer
+                    i = 0;
+                    for(CellAddress CA : mesCellulesFusionnees.get(ent)){
+                        int r = CA.getRow();
+                        if (maFeuille.getRow(r).getCell(horaire_moins_peuple).getStringCellValue().isEmpty() ||maFeuille.getRow(r).getCell(horaire_moins_peuple).getStringCellValue().isBlank())
+                            cell_a_ajouter = maFeuille.getRow(r).getCell(horaire_moins_peuple);
+                        if (i < places[ent][horaire_moins_peuple]) ++i;
+                        else break;
+                    }
+
+                    //ici on effectue les changements
+                    if (cell_a_ajouter != null && cell_a_modifier != null) {
+                        cell_a_modifier.setCellValue(etu_a_placer);
+                        cell_a_ajouter.setCellValue(etu_a_deplacer);
+                    }
                 }
 
 
@@ -672,40 +712,6 @@ public class GenerateurEdt {
                 // on remplace l'étudiant de base par celui a qui il manque l'entreprise
 
             }
-            /*
-            boolean remplissageFini = true;
-            int i = 0;
-            CellCopyPolicy policy = new CellCopyPolicy();
-
-            //tant que tout le monde n'a pas été placé
-            while (true){
-
-                while(i < cpt_entreprises_manquantes.length) {
-                    if (cpt_entreprises_manquantes[i] != 0) {
-                        remplissageFini = false;
-                        break;
-                    }
-                }
-
-                if(remplissageFini) break;
-
-                //ici on stocke la dernière ligne
-                int r = maFeuille.getLastRowNum() - 1;
-
-                //on va insérer une ligne
-                XSSFRow nouvelleLigne = maFeuille.createRow(maFeuille.getLastRowNum());
-
-                // de bas en haut
-                for (; r > 0; --r){
-                    for (int c = 0; c < this.nombreHoraires + 1; ++c){
-                        XSSFCell aDecaler = maFeuille.getRow(r).getCell(c);
-                        XSSFCell destination = nouvelleLigne.getCell(c);
-
-
-                        destination.copyCellFrom(aDecaler, policy);
-                    }
-                }
-            }*/
 
 
         /////////////////////////////////////////////
@@ -778,8 +784,9 @@ public class GenerateurEdt {
 
                     //et on place l'entreprise
                     feuille_et.getRow(y2).getCell(h).setCellValue(entreprise);
-
                 }
+
+                feuille_et.autoSizeColumn(h);
             }
 
 
