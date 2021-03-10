@@ -632,14 +632,6 @@ public class GenerateurEdt {
 
             }
 
-            // affichons les places par horaires
-            for (int[] l : places) {
-                for (int c : l)
-                    System.out.print("|" + c + "|");
-                System.out.println();
-            }
-            System.out.println();
-
             String list;
             int ent;
             int horaire_moins_peuple =0, horaire_plus_peuple = 0; // index de l'horaire le moins peuplé et index de l'horaire le moins peuplé
@@ -789,6 +781,71 @@ public class GenerateurEdt {
                 feuille_et.autoSizeColumn(h);
             }
 
+
+        //////// partie stats
+        System.out.println("////////////STATS DE LA GENERATION///////////////");
+        System.out.println("nb_entretiens_et = " + nb_entretiens_et);
+
+        // affichons les places par horaires
+        System.out.println("anciennes places");
+        for (int[] l : places) {
+            for (int c : l)
+                System.out.print("|" + c + "|");
+            System.out.println();
+        }
+        System.out.println();
+
+        // on va réafficher places pour voir la différence
+        int[][] places2 = new int[this.mesEntreprises.size()][this.nombreHoraires];
+        for (int range = 0; range < mesCellulesFusionnees.size(); ++range) { // pour toutes les entreprises
+
+            for (int h = 1; h < this.nombreHoraires + 1; ++h) { //pour toutes les horaires
+                for (CellAddress CA : mesCellulesFusionnees.get(range)) { //pour toutes les places d'entreprise
+
+                    // ici on récupère le numero de la ligne pour la suite (c'est pas possible de le faire en oneshot)
+                    int r = CA.getRow();
+
+                    //si c'est pas null ...
+                    if (maFeuille.getRow(r).getCell(h) != null) {
+                        //... on regarde si c'est vide
+                        if (maFeuille.getRow(r).getCell(h).getStringCellValue().isBlank() ||
+                                maFeuille.getRow(r).getCell(h).getStringCellValue().isEmpty())
+                            continue; // si c'est ke cas on passe au suivant
+                            //sinon on le note
+                        else ++places2[range][h - 1];
+
+                    } else continue; //si c'est null on passe au suivant
+                }
+            }
+        }
+
+        System.out.println("nouvelles places");
+        for (int[] l : places) {
+            for (int c : l)
+                System.out.print("|" + c + "|");
+            System.out.println();
+        }
+        System.out.println();
+
+        System.out.println("pourcentage de personnes manquantes");
+
+        int i = 0, nb_pas_ok = 0;
+        for (Row R : feuille_et) {
+            if (R.getRowNum() < 1 ) continue;
+            for (Cell C : R){
+                if (C.getColumnIndex() < 1) continue;
+                if (!C.getStringCellValue().isBlank() || !C.getStringCellValue().isEmpty()) ++i;
+            }
+            if (i != nb_entretiens_et) ++nb_pas_ok;
+            i = 0;
+        }
+
+        System.out.println(this.mesEtudiants.size() + " étudiants, " + nb_pas_ok + " étudiants avec un nombre d'entretien inférieur");
+        float pourcentage = ((float) nb_pas_ok) / (float) this.mesEtudiants.size();
+        pourcentage *= 100.0;
+        System.out.println(pourcentage + "% des étudiants n'ont pas tous leurs entretiens");
+
+        //////// fin de la partie stats
 
         FileOutputStream fileOut = new FileOutputStream(EDTentreprises);
         ExcelEntreprises.write(fileOut);
