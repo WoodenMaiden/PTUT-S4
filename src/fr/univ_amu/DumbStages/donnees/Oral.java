@@ -54,9 +54,15 @@ public class Oral {
     }
 
     public void Afficher() {
-        System.out.println("Etudiant: " + this.stagiaire.get(0) + this.stagiaire.get(1));
-        System.out.println("Entreprise: " + this.entreprise);
-        System.out.println("Tuteur: " + this.tuteur.getNom());
-        System.out.println("Auditeur: " + this.auditeur.getNom());
+        System.out.println(this.toString());
+    }
+
+    public String toString() {
+        String str = "Etudiant: " + this.stagiaire.get(0) + this.stagiaire.get(1) + '\n';
+        str += "Entreprise: " + this.entreprise + '\n';
+        str += "Tuteur: " + this.tuteur.getNom() + '\n';
+        str += "Auditeur: " + this.auditeur.getNom() + '\n';
+
+        return str;
     }
 }

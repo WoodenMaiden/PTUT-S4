@@ -5,6 +5,12 @@ public class Etudiant {
     private String Prenom;
     private String Groupe;
 
+    public Etudiant(String nom, String prenom) {
+        Nom = nom;
+        Prenom = prenom;
+        Groupe = "Inconnu";
+    }
+
     public Etudiant(String nom, String prenom, String groupe) {
         Nom = nom;
         Prenom = prenom;
