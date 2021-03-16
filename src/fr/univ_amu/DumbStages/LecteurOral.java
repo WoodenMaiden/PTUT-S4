@@ -67,7 +67,7 @@ public class LecteurOral {
         }
     }
 
-    public static void Start() throws IOException, InvalidFormatException {
+    public static void main(String[] args) throws IOException, InvalidFormatException {
         ThirdStep();
     }
 }
