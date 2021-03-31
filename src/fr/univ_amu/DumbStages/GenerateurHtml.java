@@ -10,9 +10,6 @@ public class GenerateurHtml {
     private File html;
     private String finHtml;
     private String codeHtml;
-    private String journey;
-    private File favicon = new File("resources/Icon.png");
-    private File current = new File ("");
     GenerateurHtml(String strSortie,String date) throws IOException { //Constructeur
         codeHtml="";
         html = new File(strSortie);
@@ -56,7 +53,11 @@ public class GenerateurHtml {
                     "\n" +
                     "</html>"); //Création de la première partie de l'html dans FinHtml
         }
-        setDate(date);
+      //Insert dans Codehtml l'Html affichant le titre de la page
+        codeHtml = codeHtml + date + "</h2>\n" +
+                "  </header>\n" +
+                "\n" +
+                "  <div>";
         debutTableau("le matin");
 
         for (fr.univ_amu.DumbStages.donnees.Entreprise ent: LecteurExcel.mesEntreprisesMatin) {
@@ -71,19 +72,18 @@ public class GenerateurHtml {
         }
         finTableau();
 
-        setFinHtml();
-        ecritDansFichier();
-        ouvrirFichier();
+        codeHtml = codeHtml + finHtml;
+        
+        //Ecrit Texte dans le fichier Sortie /!\ Si utilisé deux fois sur 
+        //le même fichier, le premier contenu sera remplacé par le deuxième
+        FileWriter FichierEcriture = new FileWriter(html);
+        FichierEcriture.write(codeHtml);
+        FichierEcriture.close();
+
+        Desktop.getDesktop().browse(html.toURI());
     }
 
-    public void setDate(String date) {
-        codeHtml = codeHtml + date + "</h2>\n" +
-                "  </header>\n" +
-                "\n" +
-                "  <div>";
-    }//Insert dans Codehtml l'Html affichant le titre de la page
-
-    public void debutTableau (String journey) {
+    private void debutTableau (String journey) {
         codeHtml = codeHtml + "<table border=\"1\" cellpadding=\"15\">\n" +
                 "\n" +
                 "      <caption>\n" +
@@ -100,37 +100,19 @@ public class GenerateurHtml {
                 "          <th id=\"thRight\"> Zoom </th>";
     } //Insert dans codeHtml le début du tableau en html
 
-    public void finTableau () {
+    private void finTableau () {
         codeHtml = codeHtml + " </tbody></table>";
     } //Insert dans CodeHtml la fin du tableau en html
 
-    public void ajouterEntreprise (Entreprise uneEntreprise){
+    private void ajouterEntreprise (Entreprise uneEntreprise){
         codeHtml = codeHtml + "    <tr>\n" +
                 "        <td> "+uneEntreprise.getNom_en()+"</td> <td>";
         this.codeHtml = this.codeHtml + uneEntreprise.getRepresentants() +"</br>";
         this.codeHtml = this.codeHtml + "</td><td><a href=\""+uneEntreprise.getUrl()+"\">"+uneEntreprise.getNom_en()+"</a></td>" +
                 "<td><a href="+uneEntreprise.getLienZoom()+">Lien Zoom</a> </br> Mot de passe: "+uneEntreprise.getMdpZoom()+"</td>\n</tr>";
     }//Insert dans CodeHtml une ligne du tableau contenant le nom de l'entreprise, des représentants, ainsi que l'url de leur site
-
-    public void setFinHtml() {
-        codeHtml = codeHtml + finHtml;
-    }
-
-    public String getFinHtml() {
-        return finHtml;
-    }
-
-    public void ecritDansFichier() throws IOException {
-        FileWriter FichierEcriture = new FileWriter(html);
-        FichierEcriture.write(codeHtml);
-        FichierEcriture.close();
-    } //Ecrit Texte dans le fichier Sortie /!\ Si utilisé deux fois sur le même fichier, le premier contenu sera remplacé par le deuxième
-
     /*public static void main(String[] args) throws IOException {
         GenerateurHtml gen = new GenerateurHtml("/amuhome/d19002305/Bureau/Logo.png", "/amuhome/d19002305/Bureau/masortie3.html");
         gen.EcritDansFichier(gen.getDebutHtml() + "<h1>TEST</h1>" + gen.getFinHtml());
     }*/
-    public void ouvrirFichier() throws IOException {
-        Desktop.getDesktop().browse(html.toURI());
-    }
 }
