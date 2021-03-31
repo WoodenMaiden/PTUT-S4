@@ -12,14 +12,10 @@ import java.util.Vector;
 
 import fr.univ_amu.DumbStages.donnees.Oral;
 import fr.univ_amu.DumbStages.donnees.Responsable;
-import fr.univ_amu.DumbStages.donnees.Etudiant;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFSheet; //?
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
-import javax.swing.filechooser.FileSystemView;
 
 public class LecteurOral {
 
@@ -55,7 +51,7 @@ public class LecteurOral {
     public ArrayList<Oral> generateOraux() {
         XSSFSheet mySheet = this.getFichier().getSheetAt(2);
 
-        ArrayList<Oral> oraux = new ArrayList<Oral>();
+        ArrayList<Oral> oraux = new ArrayList<>();
 
         for (Row row : mySheet) {
             if (row.getRowNum() > 0) {
@@ -86,7 +82,7 @@ public class LecteurOral {
 
     public static void ThirdStep() throws IOException, InvalidFormatException {
         try {
-            String path = "D:/Download/Soutenances.xlsx";
+            String path = "D:/Soutenances.xlsx";
             LecteurOral lecteurTest = new LecteurOral(path);
             //lecteurTest.generateResponsables();
             //System.out.println("Debug (Doit afficher 'Alain Casali'): "+ Objects.requireNonNull(Responsable.findResponsableByDiminutif("AC")).getNom());
@@ -96,9 +92,5 @@ public class LecteurOral {
         } finally {
             System.out.println("programme terminé");
         }
-    }
-
-    public static void main(String[] args) throws IOException, InvalidFormatException {
-        ThirdStep();
     }
 }
