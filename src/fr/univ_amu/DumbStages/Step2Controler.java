@@ -138,6 +138,16 @@ public class Step2Controler implements Initializable {
         window.show();
     }
 
+    //Changement de scene vers la scene step3.fxml
+    @FXML
+    void goStep3(MouseEvent event) throws IOException {
+        Parent root = FXMLLoader.load(getClass().getResource("step3.fxml"));
+        Scene scene = new Scene(root);
+        Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
+        window.setScene(scene);
+        window.show();
+    }
+
     //Changement de scene vers la scene home.fxml
     @FXML
     void goHome(MouseEvent event) throws IOException {

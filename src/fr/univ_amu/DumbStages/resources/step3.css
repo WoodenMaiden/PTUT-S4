@@ -1,0 +1,68 @@
+
+vbox{
+    -fx-text-fill: #1fa738;
+}
+
+#btnFolder, #buttonClose{
+    -fx-background-color: white;
+    -fx-border-color: #1fa738 ;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 10px;
+
+}
+#btnValider{
+    -fx-border-color: #1fa738 ;
+    -fx-border-radius: 10px;
+    -fx-background-color: #1fa738;
+    -fx-background-radius: 10px;
+    -fx-text-fill: white;
+}
+#btnValider:hover{
+    -fx-cursor: hand;
+    -fx-background-color: #4fb161;
+    -fx-border-color: #4fb161 ;
+}
+
+#btnFolder:hover, #buttonClose:hover{
+    -fx-background-color: #1fa738;
+    -fx-border-radius: 10px;
+    -fx-text-fill: white;
+    -fx-background-radius: 10px;
+    -fx-cursor: hand;
+    -fx-font-family: "Microsoft JhengHei";
+
+
+}
+
+#shadowBox{
+    -fx-background-color: white;
+        -fx-background-radius: 10px;
+    -fx-effect: dropshadow(gaussian, #DCDCDC, 50, 0.00005 , 0,0)
+}
+#step2:hover{
+    -fx-background-radius: 10px;
+    -fx-cursor: hand;
+    -fx-translate-x: -3px;
+
+}
+#close,#buttonClose,#infoImage:hover{
+    -fx-cursor: hand;
+}
+
+#home:hover {
+    -fx-cursor: hand;
+}
+
+#logo{
+    -webkit-animation: slide-in-bck-center 0.7s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    animation: slide-in-bck-center 0.7s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    
+}
+.label{
+    -fx-text-fill: #1fa738;
+}
+
+#infoBox{
+    -fx-background-radius: 10px;
+    -fx-effect: dropshadow(gaussian, #DCDCDC, 50, 0.00005 , 0,0)
+}
