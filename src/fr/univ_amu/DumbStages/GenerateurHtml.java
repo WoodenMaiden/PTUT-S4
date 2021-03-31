@@ -107,8 +107,7 @@ public class GenerateurHtml {
     public void ajouterEntreprise (Entreprise uneEntreprise){
         codeHtml = codeHtml + "    <tr>\n" +
                 "        <td> "+uneEntreprise.getNom_en()+"</td> <td>";
-        for (String rep : uneEntreprise.getRepresentants())
-            this.codeHtml = this.codeHtml + rep +"</br>";
+        this.codeHtml = this.codeHtml + uneEntreprise.getRepresentants() +"</br>";
         this.codeHtml = this.codeHtml + "</td><td><a href=\""+uneEntreprise.getUrl()+"\">"+uneEntreprise.getNom_en()+"</a></td>" +
                 "<td><a href="+uneEntreprise.getLienZoom()+">Lien Zoom</a> </br> Mot de passe: "+uneEntreprise.getMdpZoom()+"</td>\n</tr>";
     }//Insert dans CodeHtml une ligne du tableau contenant le nom de l'entreprise, des représentants, ainsi que l'url de leur site

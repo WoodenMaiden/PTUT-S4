@@ -74,8 +74,7 @@ public class LecteurExcel {
         {
             if (row.getRowNum() != 0)
             {
-                String[] representants = new String[1];
-                representants[0] = "Inconnu";
+                String representants = "Inconnu";
                 String nom_en = "Inconnu";
                 String url = "Inconnu";
                 String lienzoom = "Inconnu";
@@ -83,7 +82,7 @@ public class LecteurExcel {
 
                 for (Cell cell: row) {
                     if (cell.getColumnIndex() == 0) nom_en = cell.getStringCellValue();
-                    else if (cell.getColumnIndex() == 1) representants[0] = cell.getStringCellValue();
+                    else if (cell.getColumnIndex() == 1) representants = cell.getStringCellValue();
                     else if (cell.getColumnIndex() == 2) url = cell.getStringCellValue();
                     else if (cell.getColumnIndex() == 3) lienzoom = cell.getStringCellValue();
                     else if (cell.getColumnIndex() == 4)  {
