@@ -15,8 +15,8 @@ public class Oral {
         this.stagiaire.add(nom);
         this.stagiaire.add(prenom);
         this.entreprise = entreprise;
-        this.tuteur = this.tuteur.findResponsableByDiminutif(dim_tuteur);
-        this.auditeur = this.auditeur.findResponsableByDiminutif(dim_auditeur);
+        this.tuteur = Responsable.findResponsableByDiminutif(dim_tuteur);
+        this.auditeur = Responsable.findResponsableByDiminutif(dim_auditeur);
     }
 
 
@@ -42,7 +42,7 @@ public class Oral {
     }
 
     public void setTuteur(String diminutif) {
-        this.tuteur.findResponsableByDiminutif(diminutif);
+        Responsable.findResponsableByDiminutif(diminutif);
     }
 
     public Responsable getAuditeur() {
@@ -50,7 +50,7 @@ public class Oral {
     }
 
     public void setAuditeur(String diminutif) {
-        this.auditeur.findResponsableByDiminutif(diminutif);
+        Responsable.findResponsableByDiminutif(diminutif);
     }
 
     public void Afficher() {
