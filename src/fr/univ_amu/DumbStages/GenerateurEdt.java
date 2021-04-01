@@ -273,37 +273,7 @@ public class GenerateurEdt {
             vers_la_droite = !vers_la_droite;
             ++i_ligne;
         }//while (i_ligne <= range.getLastRow())
-
-
-        /*while(i_colonne != this.nombreHoraires && i_ligne != range.getLastColumn()){
-            cellule = feuille.getRow(i_ligne).getCell(i_colonne);
-            System.out.print("cellule " + cellule.getAddress().toString() + ", ");
-            if (cellule.getStringCellValue().isEmpty() || cellule.getStringCellValue().isBlank()){
-                if (!map_Etudiant_Colonnes_Libres.get(et)[i_colonne - 1]){
-                    map_Etudiant_Colonnes_Libres.get(et)[i_colonne - 1] = true;
-                    System.out.println(" étudiant" + str_et + " placé");
-                    cellule.setCellValue(str_et);
-                    break;
-                }//if (!map_Etudiant_Colonnes_Libres.get(et)[i_colonne - 1])
-            }//if (cellule.getStringCellValue().isEmpty() || cellule.getStringCellValue().isBlank())
-
-            if(i_colonne == this.nombreHoraires){
-                vers_la_droite = false;
-                ++i_ligne;
-            } else if (i_colonne == range.getFirstColumn() + 1){
-                vers_la_droite = true;
-                ++i_ligne;
-            }
-
-            if(vers_la_droite){
-                ++i_colonne;
-            } else {
-                --i_colonne;
-            }
-
-        }*///while(i_colonne != this.nombreHoraires && i_ligne != range.getLastColumn())
-
-    }
+    }//placerEtudiant()
 
 
     public void run () throws Exception {
@@ -502,8 +472,6 @@ public class GenerateurEdt {
                     int indice = aleaEtu.nextInt(etudiants_interesses.size());
                     i_etudiant = etudiants_interesses.get(indice);
 
-//                    System.out.println("index étudiant : " + i_etudiant + ", étudiant : " + mesEtudiants.get(i_etudiant).getNom());
-
                     placerEtudiant(i_etudiant, i_entreprise, mesCellulesFusionnees, maFeuille);
                     System.out.println();
                     etudiants_interesses.remove(indice);
@@ -596,10 +564,5 @@ public class GenerateurEdt {
             ExcelEntreprises.close();
             fileOut.close();
 
-    }
-
-    public static void main(String[] args) throws Exception {
-        GenerateurEdt G = new GenerateurEdt("/home/yann/Documents/Tableau Etudiant Entreprises Apres-Midi.xlsx", "/home/yann/Bureau", 5);
-        G.run();
     }
 }
