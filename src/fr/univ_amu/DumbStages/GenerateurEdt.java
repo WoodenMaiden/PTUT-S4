@@ -563,6 +563,5 @@ public class GenerateurEdt {
             ExcelEntreprises.write(fileOut);
             ExcelEntreprises.close();
             fileOut.close();
-
     }
 }
