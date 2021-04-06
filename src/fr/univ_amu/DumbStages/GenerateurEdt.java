@@ -1,9 +1,9 @@
 package fr.univ_amu.DumbStages;
 
 
-
 import fr.univ_amu.DumbStages.donnees.Entreprise;
 import fr.univ_amu.DumbStages.donnees.Etudiant;
+
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellAddress;
@@ -14,11 +14,8 @@ import org.apache.poi.xssf.usermodel.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Random;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Pattern;
 
 public class GenerateurEdt {
 
@@ -27,18 +24,18 @@ public class GenerateurEdt {
 
     private int nombreHoraires;
 
-    private List<Etudiant> mesEtudiants;
-    private List<Entreprise> mesEntreprises;
-    private Map<Etudiant, boolean[]> map_Etudiant_Colonnes_Libres;
-    private Map<Etudiant, boolean[]> map_Etudiant_Entreprises_Libres;
+    private static Vector<Etudiant> mesEtudiants;
+    private static Vector<Entreprise> mesEntreprises;
+    private HashMap<Etudiant, boolean[]> map_Etudiant_Colonnes_Libres;
+    private HashMap<Etudiant, boolean[]> map_Etudiant_Entreprises_Libres;
 
 
     public GenerateurEdt(String chemin, String repertoire, int nombreHoraires) throws SecurityException {
         if (chemin == null || chemin == "") throw new SecurityException("entrez quelque chose");
 
         try {
-            mesEntreprises = new ArrayList<Entreprise>();
-            mesEtudiants = new ArrayList<Etudiant>();
+            mesEntreprises = new Vector<Entreprise>();
+            mesEtudiants = new Vector<Etudiant>();
 
             File FichierEntree = new File(chemin);
             this.Entree = new XSSFWorkbook(FichierEntree);
@@ -95,9 +92,11 @@ public class GenerateurEdt {
 
                     case 1:
                         Cell cetteCellule2 = Entree.getSheetAt(indexFeuille).getRow(y).getCell(x);
-                        if ( cetteCellule2.getStringCellValue().isEmpty() || cetteCellule2.getStringCellValue().isBlank() || cetteCellule2 == null) {
+                        if (cetteCellule2 == null) {
+                            if (cetteCellule2.getStringCellValue().isEmpty() || cetteCellule2.getStringCellValue().isBlank()) {
                                 aLaFin = true;
                                 break; // si c'est vide c'est que c'est la fin
+                            }
                         }
                         prenom = cetteCellule2.getStringCellValue();
                         break;
@@ -156,11 +155,11 @@ public class GenerateurEdt {
 
 
 
-        List<Short> entiers_dispo = new ArrayList<Short>(); // liste des entiers de 1 à n entreprises disponibles quand un d'eux est présent dans ligne_mat il sera "consommé" (supprimé)
+        Vector<Short> entiers_dispo = new Vector<Short>(); // liste des entiers de 1 à n entreprises disponibles quand un d'eux est présent dans ligne_mat il sera "consommé" (supprimé)
         for(short i = 1; i <= mesEntreprises.size(); ++i) entiers_dispo.add(i);
 
 
-        List<Integer> i_cases_invalides = new ArrayList<Integer>();
+        Vector<Integer> i_cases_invalides = new Vector<Integer>();
 
         boolean trouve = false; //booléen qui permet de savoir si on a trouvé la case de la matrice dans la liste des entiers disponibles
 
@@ -238,6 +237,44 @@ public class GenerateurEdt {
         }
     }
 
+    private void placerEtudiant (int indice_et, int indice_ent, Vector<CellRangeAddress> mesCellFus, XSSFSheet feuille) {
+        CellRangeAddress range = mesCellFus.get(indice_ent);
+        int i_colonne = range.getFirstColumn() + 1;
+        int i_ligne = range.getFirstRow();
+        Etudiant et = mesEtudiants.get(indice_et);
+        String str_et = et.getNom() + " " + et.getPrenom();
+        boolean vers_la_droite = true;
+        XSSFCell cellule;
+
+        System.out.print(str_et + " : ");
+        while (i_ligne <= range.getLastRow()){
+
+            //TODO comprendre pourquoi le parcours ne continue pas sur d'autres lignes
+            while (i_colonne < this.nombreHoraires + 1 && i_colonne > 0){
+                cellule = feuille.getRow(i_ligne).getCell(i_colonne);
+                System.out.print(cellule.getAddress() + " c " + i_colonne + " l " + i_ligne + ", ");
+                if (!map_Etudiant_Colonnes_Libres.get(et)[i_colonne - 1]){
+                    if (cellule.getStringCellValue().isBlank() || cellule.getStringCellValue().isEmpty()){
+                        map_Etudiant_Colonnes_Libres.get(et)[i_colonne - 1] = true;
+                        cellule.setCellValue(str_et);
+                        System.out.println("placé en : " + cellule.getAddress());
+                        return;
+                    }
+                }//(!map_Etudiant_Colonnes_Libres.get(et)[i_colonne - 1])
+                if(vers_la_droite) ++i_colonne;
+                else --i_colonne;
+            }//while (i_colonne < this.nombreHoraires + 1 && i_colonne > 0)
+
+            //on reset les valeurs
+            if (i_colonne >= this.nombreHoraires + 1 ) i_colonne = this.nombreHoraires;
+            else if (i_colonne <= 0) i_colonne = range.getFirstColumn() + 1;
+
+            System.out.println("sorti de la boucle i_colonne");
+            vers_la_droite = !vers_la_droite;
+            ++i_ligne;
+        }//while (i_ligne <= range.getLastRow())
+    }//placerEtudiant()
+
 
     public void run () throws Exception {
         remplirVecteurs();
@@ -255,7 +292,7 @@ public class GenerateurEdt {
         }
 
         for (Entreprise entr : mesEntreprises)
-            System.out.print(entr.getNom_en() + " ");
+            System.out.print(entr.getNom_en() + " | ");
 
 
         ///////////////////////////////////////
@@ -338,7 +375,7 @@ public class GenerateurEdt {
             }
 
 
-            List<CellRangeAddress> mesCellulesFusionnees = new ArrayList<CellRangeAddress>(); // représente les entreprises en ordonnées (leur range)
+            Vector<CellRangeAddress> mesCellulesFusionnees = new Vector<CellRangeAddress>(); // représente les entreprises en ordonnées (leur range)
 
 
             //fusion des cellules
@@ -356,22 +393,17 @@ public class GenerateurEdt {
             }
 
 
-            // TODO changer normaliser de manière a homogénéiser la matrice de choix (éviter qu'une entreprise aie tous les 1)
-
             // ici on remplit le tableau, on va d'abord faire une copie de la matrice de choix
 
-            List<List<Short>> matrice2 = new ArrayList<List<Short>>();
+            Vector<Vector<Short>> matrice2 = new Vector<Vector<Short>>();
             for (short[] ligne : matrice_de_choix) {
 
-            	List<Short> Vligne = new ArrayList<Short>();
+                Vector<Short> Vligne = new Vector<Short>();
                 for (short s : ligne)
                     Vligne.add(s);
 
                 matrice2.add(Vligne);
             }
-
-            Random aleaEtu = new Random();
-            boolean estFini = false;
 
 
             //créons TOUTES les cellules
@@ -379,7 +411,7 @@ public class GenerateurEdt {
 
             int cpt = 0;
 
-            System.out.println("\nnb places : " + nb_entretiens_et);
+            System.out.println("\nnb entretiens : " + nb_entretiens_et);
 
             for (int i = 0; i < mesEntreprises.size() * nb_places_necessaires; ++i) {
 
@@ -412,92 +444,40 @@ public class GenerateurEdt {
 
             }
 
-            //Ici on va consommer les lignes du vecteur matriciel matrice2 une par une de manière aléatoire (lignes qui représentent les étudiants), pour chaque ligne on va placer les étudiants dans l'ordre des notes
-            // attention les yeux ça risque de piquer
-            while (estFini == false) {
+            System.out.println(mesCellulesFusionnees.toString());
 
-                //pour chaque étudiant
-                // "démonstration par l'absurde" : ici on va partir du principe que estFini est vrai
-                estFini = true;
-                for (List<Short> v : matrice2) {
-                    if (v.size() != 0) {
-                        estFini = false;
+            boolean parcours_normal = true;
+            //int debut = mesCellulesFusionnees.get(0).getFirstColumn() + 1;
+            Random aleaEtu = new Random();
+
+            //entiers qui donnent les indexs des étudiants intéréssés par l'entreprise
+            ArrayList<Integer> etudiants_interesses = new ArrayList<>(5);
+
+            //index de l'etudiant a placer
+            int i_etudiant;
+
+            //pour toutes les entreprises
+            for (int i_entreprise = 0 ; i_entreprise < mesEntreprises.size(); ++i_entreprise){
+
+                //on remplit la liste des étudiants intéréssés donc ceux <= nb_entreitens_et
+                for (int et_matrice = 0; et_matrice < matrice_de_choix.length; ++et_matrice) {
+                    if (matrice_de_choix[et_matrice][i_entreprise] <= nb_entretiens_et) {
+                        etudiants_interesses.add(et_matrice);
                     }
                 }
 
-                if (estFini == true) break;
+                System.out.println(etudiants_interesses.toString());
 
-                // on sélectionne un étudiant
-                int iy_matrice = aleaEtu.nextInt(matrice2.size());
+                while(etudiants_interesses.size() != 0) {
+                    int indice = aleaEtu.nextInt(etudiants_interesses.size());
+                    i_etudiant = etudiants_interesses.get(indice);
 
-                while (matrice2.get(iy_matrice).size() == 0) {
-                    iy_matrice = aleaEtu.nextInt(matrice2.size());
-                }
+                    placerEtudiant(i_etudiant, i_entreprise, mesCellulesFusionnees, maFeuille);
+                    System.out.println();
+                    etudiants_interesses.remove(indice);
+                }//while(etudiants_interesses.size() != 0)
 
-                List<Short> Lmatrice2 = matrice2.get(iy_matrice);
-
-                short noteSelect = 1;
-
-
-                //pour chaque note <=> pour chaque entreprise
-                while (noteSelect < nb_entretiens_et + 1) {
-
-                    int entreprise_associee = Lmatrice2.indexOf(noteSelect);
-
-                    int parcours_vecteur = 0;
-
-                    //pour toutes les cases du vecteur associé à la clé iy_matrice (mesEtudiants.get(iy_matrice))...
-                    while (parcours_vecteur < map_Etudiant_Colonnes_Libres.get(mesEtudiants.get(iy_matrice)).length){
-
-
-//                        int entreprise_associee = Lmatrice2.indexOf(noteSelect);
-
-                        // ..on regarde si l'étudiant est placé dans la colonne du excel parcours_vecteur+1...
-
-                        if (map_Etudiant_Colonnes_Libres.get(mesEtudiants.get(iy_matrice))[parcours_vecteur] == false && map_Etudiant_Entreprises_Libres.get(mesEtudiants.get(iy_matrice))[entreprise_associee] == false) {
-
-                            // on reste dans l'espace dédié à l'entreprise en se calant sur la première ligne
-                            int y = mesCellulesFusionnees.get(entreprise_associee).getFirstRow();
-
-                            // on parcoure les lignes (les places) dédiées à l'entreprise
-                            while (y <= mesCellulesFusionnees.get(entreprise_associee).getLastRow()) {
-
-                                //si la cellule testée est vide (elle ne peux pas être null car on les as toutes instanciées
-                                if (maFeuille.getRow(y) != null) {
-                                    if (maFeuille.getRow(y).getCell(parcours_vecteur + 1).getStringCellValue().isEmpty()
-                                            || maFeuille.getRow(y).getCell(parcours_vecteur + 1).getStringCellValue().isBlank()) {
-
-                                        maFeuille.getRow(y).getCell(parcours_vecteur + 1).setCellValue(mesEtudiants.get(iy_matrice).getNom() + " " + mesEtudiants.get(iy_matrice).getPrenom());
-
-                                        map_Etudiant_Colonnes_Libres.get(mesEtudiants.get(iy_matrice))[parcours_vecteur] = true;
-                                        map_Etudiant_Entreprises_Libres.get(mesEtudiants.get(iy_matrice))[entreprise_associee] = true;
-                                    }
-                                }
-                                //si l'étudiant a déjà été placé dans cette colonne et a déjà été placé avec son entreprise on sort de cette boucle
-                                if (map_Etudiant_Colonnes_Libres.get(mesEtudiants.get(iy_matrice))[parcours_vecteur] == true && map_Etudiant_Entreprises_Libres.get(mesEtudiants.get(iy_matrice))[entreprise_associee] == true){
-                                    break;
-                                }
-
-                                ++y;
-                            }
-
-                        } // if (map_Etudiant_ColomnesLibres.get(mesEtudiants.get(iy_matrice))[parcours_vecteur] == false)
-
-                          ++parcours_vecteur;
-                          Lmatrice2.set(entreprise_associee, (short) 0);
-
-                    } // while (parcours_vecteur < map_Etudiant_Colonnes_Libres.get(mesEtudiants.get(iy_matrice)).length)
-
-                    ++noteSelect;
-
-                }//while (noteSelect < nb_entretiens_et + 1)
-
-                // on supprime la ligne de l'étudiant -> on s'est occupé de cet étudiant
-                Lmatrice2.clear();
-
-            }// while(estFini == true)
-
-            //Todo créer l'edt inversé pour chaque étudiant
+            }//for (int entreprise = 0 ; entreprise < mesEntreprises.size(); ++entreprise)
 
 
             matrice2.clear();
@@ -506,7 +486,6 @@ public class GenerateurEdt {
         //////////////////////////////////////////////
         // fin de création de l'edt des entreprises //
         //////////////////////////////////////////////
-
 
 
         /////////////////////////////////////
@@ -521,33 +500,33 @@ public class GenerateurEdt {
             A1_et.setCellValue("Étudiants");
             A1_et.setCellStyle(titres);
 
-            for (int h = 1 ; h < this.nombreHoraires + 1; ++h){
+            for (int h = 1; h < this.nombreHoraires + 1; ++h) {
                 XSSFCell horaire = mesHoraires_et.createCell(h);
                 CellAddress AdresseHoraire = new CellAddress(maFeuille.getRow(0).getCell(h));
-                horaire.setCellFormula("REPT(" + maFeuille.getSheetName() + "!" + AdresseHoraire.toString() + ", 1)" );
+                horaire.setCellFormula("REPT(" + maFeuille.getSheetName() + "!" + AdresseHoraire.toString() + ", 1)");
                 horaire.setCellStyle(titres);
             }
 
 
             // on va créer toutes les cellules
-            for (int et = 1; et < mesEtudiants.size() + 1; ++et){
+            for (int et = 1; et < mesEtudiants.size() + 1; ++et) {
                 XSSFRow maRow = feuille_et.createRow(et);
-                for (int i_maCell = 0; i_maCell < this.nombreHoraires +1; ++i_maCell){
+                for (int i_maCell = 0; i_maCell < this.nombreHoraires + 1; ++i_maCell) {
                     XSSFCell maCell = maRow.createCell(i_maCell);
                     maCell.setCellStyle(texte);
                 }
             }
 
             // on va mettre les noms de nos étudiants
-            for(Row R : feuille_et){
+            for (Row R : feuille_et) {
                 if (R.getRowNum() == 0) continue;
                 R.getCell(0).setCellValue(mesEtudiants.get(R.getRowNum() - 1).getNom() + " " + mesEtudiants.get(R.getRowNum() - 1).getPrenom());
                 R.getSheet().autoSizeColumn(0);
 
                 //On regarde les changements de groupes tout en faisant gaffe à ne pas finir en dehors de l'array
 
-                if ((R.getRowNum() <= (feuille_et.getLastRowNum() - 1)) && !(mesEtudiants.get(R.getRowNum() - 1).getGroupe().equals(mesEtudiants.get(R.getRowNum()).getGroupe()))){
-                    for (Cell c : R){
+                if ((R.getRowNum() <= (feuille_et.getLastRowNum() - 1)) && !(mesEtudiants.get(R.getRowNum() - 1).getGroupe().equals(mesEtudiants.get(R.getRowNum()).getGroupe()))) {
+                    for (Cell c : R) {
                         c.setCellStyle(dernieresCellules);
                     }
                 }
@@ -556,40 +535,33 @@ public class GenerateurEdt {
             for (int h = 1; h < this.nombreHoraires + 1; ++h) {
 
                 int y = 0;
-                while (true){
+                while (true) {
                     ++y;
 
                     //si la row est nulle est donc qu'on est à la fin du tableau on s'arrête là
                     if (maFeuille.getRow(y) == null) break;
 
                     //si la cellule est vide on l'ignore
-                    if (maFeuille.getRow(y).getCell(h).getStringCellValue().isEmpty() || maFeuille.getRow(y).getCell(h).getStringCellValue().isBlank()) continue;
+                    if (maFeuille.getRow(y).getCell(h).getStringCellValue().isEmpty() || maFeuille.getRow(y).getCell(h).getStringCellValue().isBlank())
+                        continue;
 
-                    String etudiant = maFeuille.getRow(y).getCell(h).getStringCellValue();
+                    String étudiant = maFeuille.getRow(y).getCell(h).getStringCellValue();
                     String entreprise = maFeuille.getRow(y).getCell(0).getStringCellValue();
 
                     int y2 = 1;
                     // on défile les lignes jusqu'à ce qu'on arrive à l'étudiant concerné
-                    for (; y2 < feuille_et.getLastRowNum() && !(feuille_et.getRow(y2).getCell(0).getStringCellValue().equals(etudiant)); ++y2);
+                    for (; y2 < feuille_et.getLastRowNum() && !(feuille_et.getRow(y2).getCell(0).getStringCellValue().equals(étudiant)); ++y2);
 
                     //et on place l'entreprise
                     feuille_et.getRow(y2).getCell(h).setCellValue(entreprise);
-
                 }
+
+                feuille_et.autoSizeColumn(h);
             }
 
-
-        FileOutputStream fileOut = new FileOutputStream(EDTentreprises);
-        ExcelEntreprises.write(fileOut);
-        ExcelEntreprises.close();
-        fileOut.close();
-
+            FileOutputStream fileOut = new FileOutputStream(EDTentreprises);
+            ExcelEntreprises.write(fileOut);
+            ExcelEntreprises.close();
+            fileOut.close();
     }
-
-    public static void main(String[] args) throws Exception {
-        GenerateurEdt G = new GenerateurEdt("/home/yann/Bureau/testmat.xlsx", "/home/yann/Bureau", 5);
-        G.run();
-    }
-
-
 }
