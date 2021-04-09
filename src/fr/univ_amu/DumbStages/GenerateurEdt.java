@@ -15,43 +15,30 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Pattern;
 
-public class GenerateurEdt {
+public final class GenerateurEdt {
 
     public XSSFWorkbook Entree;
     public File RepertSortie; // on va (très probablement) générer plusieurs fichiers, autant les mettre dans un répertoire non ?
 
-    private int nombreHoraires;
+    private final int nombreHoraires;
 
-    private static Vector<Etudiant> mesEtudiants;
-    private static Vector<Entreprise> mesEntreprises;
-    private HashMap<Etudiant, boolean[]> map_Etudiant_Colonnes_Libres;
-    private HashMap<Etudiant, boolean[]> map_Etudiant_Entreprises_Libres;
+    private final List<Etudiant> mesEtudiants = new ArrayList<Etudiant>(); 
+    private final List<Entreprise> mesEntreprises = new ArrayList<Entreprise>();
+    // c'est une map qui prend a pour clé les étudiants et en valeur un array de booléens, si array[i] == true alors l'étudiant est déjà placé à la colonne i+1 -> évite que les étudiants soient sur la même colomne
+    private final Map<Etudiant, boolean[]>  map_Etudiant_Colonnes_Libres = new HashMap<Etudiant, boolean[]>();
+    // idem, si array[i] == true alors l'étudiant est déjà3 placé pour l'entreprise à l'indice i de mesEntreprises -> évite que les étudiants soient sur la même ligne
+    private final Map<Etudiant, boolean[]> map_Etudiant_Entreprises_Libres = new HashMap<Etudiant, boolean[]>();
 
 
     public GenerateurEdt(String chemin, String repertoire, int nombreHoraires) throws SecurityException {
         if (chemin == null || chemin == "") throw new SecurityException("entrez quelque chose");
-
+        this.nombreHoraires = nombreHoraires;
         try {
-            mesEntreprises = new Vector<Entreprise>();
-            mesEtudiants = new Vector<Etudiant>();
-
             File FichierEntree = new File(chemin);
             this.Entree = new XSSFWorkbook(FichierEntree);
             this.RepertSortie = new File(repertoire);
-
-            this.nombreHoraires = nombreHoraires;
-
-            // c'est une map qui prend a pour clé les étudiants et en valeur un array de booléens, si array[i] == true alors l'étudiant est déjà placé à la colonne i+1 -> évite que les étudiants soient sur la même colomne
-            this.map_Etudiant_Colonnes_Libres = new HashMap<Etudiant, boolean[]>();
-            // idem, si array[i] == true alors l'étudiant est déjà3 placé pour l'entreprise à l'indice i de mesEntreprises -> évite que les étudiants soient sur la même ligne
-            this.map_Etudiant_Entreprises_Libres = new HashMap<Etudiant, boolean[]>();
-
-
             if (!RepertSortie.exists() && !RepertSortie.isDirectory()) RepertSortie.mkdirs();
-
-
             if (!FichierEntree.exists()) throw new SecurityException ("Une erreur d'entrée sortie est survenue :( \n Vérifiez si les fichier sont valides ou si vous avez des droits dessus");
         } catch (IOException e) {
             e.printStackTrace();
@@ -66,11 +53,7 @@ public class GenerateurEdt {
 
         // On parcours toutes les feuilles car 1 feuille = 1 groupe
         for(int indexFeuille = 0; indexFeuille < Entree.getNumberOfSheets(); ++indexFeuille) {
-
-            String groupe;
-            XSSFCell CelluleGroupe = Entree.getSheetAt(indexFeuille).getRow(1).getCell(0);
-            groupe = CelluleGroupe.getStringCellValue();
-
+            final String groupe = Entree.getSheetAt(indexFeuille).getRow(1).getCell(0).getStringCellValue();
             int x = -1;
             int y = 3;
 
@@ -92,11 +75,9 @@ public class GenerateurEdt {
 
                     case 1:
                         Cell cetteCellule2 = Entree.getSheetAt(indexFeuille).getRow(y).getCell(x);
-                        if (cetteCellule2 == null) {
-                            if (cetteCellule2.getStringCellValue().isEmpty() || cetteCellule2.getStringCellValue().isBlank()) {
-                                aLaFin = true;
-                                break; // si c'est vide c'est que c'est la fin
-                            }
+                        if (cetteCellule2 == null || cetteCellule2.getStringCellValue().isEmpty() || cetteCellule2.getStringCellValue().isBlank()) {
+                            aLaFin = true;
+                            break; // si c'est vide c'est que c'est la fin
                         }
                         prenom = cetteCellule2.getStringCellValue();
                         break;
@@ -132,12 +113,12 @@ public class GenerateurEdt {
         }
 
         for (Etudiant et : mesEtudiants){
-            boolean[] mon_array = map_Etudiant_Colonnes_Libres.get(et);
+            final boolean[] mon_array = map_Etudiant_Colonnes_Libres.get(et);
             for (int i = 0; i < mon_array.length; ++i){
                 mon_array[i] = false;
             }
 
-            boolean[] mon_array_entreprises = map_Etudiant_Entreprises_Libres.get(et);
+            final boolean[] mon_array_entreprises = map_Etudiant_Entreprises_Libres.get(et);
             for (int i = 0; i < mon_array_entreprises.length; ++i){
                 mon_array_entreprises[i] = false;
             }
@@ -155,11 +136,11 @@ public class GenerateurEdt {
 
 
 
-        Vector<Short> entiers_dispo = new Vector<Short>(); // liste des entiers de 1 à n entreprises disponibles quand un d'eux est présent dans ligne_mat il sera "consommé" (supprimé)
+        final List<Short> entiers_dispo = new ArrayList<Short>(); // liste des entiers de 1 à n entreprises disponibles quand un d'eux est présent dans ligne_mat il sera "consommé" (supprimé)
         for(short i = 1; i <= mesEntreprises.size(); ++i) entiers_dispo.add(i);
 
 
-        Vector<Integer> i_cases_invalides = new Vector<Integer>();
+        final List<Integer> i_cases_invalides = new ArrayList<Integer>();
 
         boolean trouve = false; //booléen qui permet de savoir si on a trouvé la case de la matrice dans la liste des entiers disponibles
 
@@ -188,7 +169,7 @@ public class GenerateurEdt {
 
         //maintenant on va remplir le tableau avec les entiers disponibles aux cases de ligne_mat non valides de manière aléatoire
 
-        Random gen_aleatoire = new Random();
+        final Random gen_aleatoire = new Random();
         int indexAlea = 0;
 
         for (int i : i_cases_invalides) {
@@ -237,27 +218,26 @@ public class GenerateurEdt {
         }
     }
 
-    private void placerEtudiant (int indice_et, int indice_ent, Vector<CellRangeAddress> mesCellFus, XSSFSheet feuille) {
-        CellRangeAddress range = mesCellFus.get(indice_ent);
+    private void placerEtudiant (int indice_et, int indice_ent, List<CellRangeAddress> mesCellFus, XSSFSheet feuille) {
+        final CellRangeAddress range = mesCellFus.get(indice_ent);
         int i_colonne = range.getFirstColumn() + 1;
         int i_ligne = range.getFirstRow();
-        Etudiant et = mesEtudiants.get(indice_et);
-        String str_et = et.getNom() + " " + et.getPrenom();
+        final Etudiant et = mesEtudiants.get(indice_et);
         boolean vers_la_droite = true;
         XSSFCell cellule;
 
-        System.out.print(str_et + " : ");
+        //System.out.print(str_et + " : ");
         while (i_ligne <= range.getLastRow()){
 
             //TODO comprendre pourquoi le parcours ne continue pas sur d'autres lignes
             while (i_colonne < this.nombreHoraires + 1 && i_colonne > 0){
                 cellule = feuille.getRow(i_ligne).getCell(i_colonne);
-                System.out.print(cellule.getAddress() + " c " + i_colonne + " l " + i_ligne + ", ");
+                //System.out.print(cellule.getAddress() + " c " + i_colonne + " l " + i_ligne + ", ");
                 if (!map_Etudiant_Colonnes_Libres.get(et)[i_colonne - 1]){
                     if (cellule.getStringCellValue().isBlank() || cellule.getStringCellValue().isEmpty()){
                         map_Etudiant_Colonnes_Libres.get(et)[i_colonne - 1] = true;
-                        cellule.setCellValue(str_et);
-                        System.out.println("placé en : " + cellule.getAddress());
+                        cellule.setCellValue(et.getNom() + " " + et.getPrenom());
+                        //System.out.println("placé en : " + cellule.getAddress());
                         return;
                     }
                 }//(!map_Etudiant_Colonnes_Libres.get(et)[i_colonne - 1])
@@ -269,7 +249,7 @@ public class GenerateurEdt {
             if (i_colonne >= this.nombreHoraires + 1 ) i_colonne = this.nombreHoraires;
             else if (i_colonne <= 0) i_colonne = range.getFirstColumn() + 1;
 
-            System.out.println("sorti de la boucle i_colonne");
+            //System.out.println("sorti de la boucle i_colonne");
             vers_la_droite = !vers_la_droite;
             ++i_ligne;
         }//while (i_ligne <= range.getLastRow())
@@ -279,20 +259,20 @@ public class GenerateurEdt {
     public void run () throws Exception {
         remplirVecteurs();
 
-        short[][] matrice_de_choix = new short[mesEtudiants.size()][mesEntreprises.size()];
+        final short[][] matrice_de_choix = new short[mesEtudiants.size()][mesEntreprises.size()];
 
         remplirChoix(matrice_de_choix);
 
-        for (int i = 0; i < matrice_de_choix.length; ++i) {
+//        for (int i = 0; i < matrice_de_choix.length; ++i) {
+//
+//            for (int j = 0; j < matrice_de_choix[i].length; ++j)
+//                //System.out.print(matrice_de_choix[i][j] + " ");
+//
+//            System.out.println(mesEtudiants.get(i).getNom() + " " + mesEtudiants.get(i).getPrenom());
+//        }
 
-            for (int j = 0; j < matrice_de_choix[i].length; ++j)
-                System.out.print(matrice_de_choix[i][j] + " ");
-
-            System.out.println(mesEtudiants.get(i).getNom() + " " + mesEtudiants.get(i).getPrenom());
-        }
-
-        for (Entreprise entr : mesEntreprises)
-            System.out.print(entr.getNom_en() + " | ");
+//        for (Entreprise entr : mesEntreprises)
+//            System.out.print(entr.getNom_en() + " | ");
 
 
         ///////////////////////////////////////
@@ -300,29 +280,29 @@ public class GenerateurEdt {
         ///////////////////////////////////////
 
 
-            XSSFWorkbook ExcelEntreprises = new XSSFWorkbook();
+            final XSSFWorkbook ExcelEntreprises = new XSSFWorkbook();
             File EDTentreprises = new File(RepertSortie, "Emploi du temps entreprises "+Step2Controler.endFile+".xlsx");
 
 
-            XSSFCellStyle texte = ExcelEntreprises.createCellStyle();
+            final XSSFCellStyle texte = ExcelEntreprises.createCellStyle();
             texte.setVerticalAlignment(VerticalAlignment.CENTER);
             texte.setAlignment(HorizontalAlignment.CENTER);
 
 
-            XSSFCellStyle titres = ExcelEntreprises.createCellStyle();
+            final XSSFCellStyle titres = ExcelEntreprises.createCellStyle();
             titres.cloneStyleFrom(texte);
             titres.setBorderBottom(BorderStyle.THICK);
             titres.setBorderTop(BorderStyle.THICK);
 
-            XSSFCellStyle dernieresCellules = ExcelEntreprises.createCellStyle();
+            final XSSFCellStyle dernieresCellules = ExcelEntreprises.createCellStyle();
             dernieresCellules.cloneStyleFrom(texte);
             dernieresCellules.setBorderBottom(BorderStyle.THICK);
 
 
-            XSSFSheet maFeuille = ExcelEntreprises.createSheet("Entreprises");
-            XSSFRow mesHoraires = maFeuille.createRow(0);
+            final XSSFSheet maFeuille = ExcelEntreprises.createSheet("Entreprises");
+            final XSSFRow mesHoraires = maFeuille.createRow(0);
 
-            XSSFCell A1 = mesHoraires.createCell(0);
+            final XSSFCell A1 = mesHoraires.createCell(0);
             A1.setCellValue("Entreprises");
             A1.setCellStyle(titres);
 
@@ -352,13 +332,8 @@ public class GenerateurEdt {
              */
 
             int nb_entretiens_et;
-
-            if (mesEntreprises.size() < this.nombreHoraires){
-                nb_entretiens_et = mesEntreprises.size();
-            }
-            else /*mesEntreprises.size() => this.nombreHoraires*/ {
-                nb_entretiens_et = this.nombreHoraires;
-            }
+            if (mesEntreprises.size() < this.nombreHoraires) nb_entretiens_et = mesEntreprises.size();
+            else /*mesEntreprises.size() => this.nombreHoraires*/ nb_entretiens_et = this.nombreHoraires;
 
 
             while (true) {
@@ -375,7 +350,7 @@ public class GenerateurEdt {
             }
 
 
-            Vector<CellRangeAddress> mesCellulesFusionnees = new Vector<CellRangeAddress>(); // représente les entreprises en ordonnées (leur range)
+            final List<CellRangeAddress> mesCellulesFusionnees = new ArrayList<CellRangeAddress>(); // représente les entreprises en ordonnées (leur range)
 
 
             //fusion des cellules
@@ -385,7 +360,7 @@ public class GenerateurEdt {
 
                 debut_fusion_cellules += nb_places_necessaires;
 
-                CellRangeAddress maRange = new CellRangeAddress(debut_fusion_cellules, debut_fusion_cellules + nb_places_necessaires - 1, 0, 0);
+                final CellRangeAddress maRange = new CellRangeAddress(debut_fusion_cellules, debut_fusion_cellules + nb_places_necessaires - 1, 0, 0);
 
                 mesCellulesFusionnees.add(maRange);
 
@@ -395,10 +370,10 @@ public class GenerateurEdt {
 
             // ici on remplit le tableau, on va d'abord faire une copie de la matrice de choix
 
-            Vector<Vector<Short>> matrice2 = new Vector<Vector<Short>>();
+            final List<List<Short>> matrice2 = new ArrayList<List<Short>>();
             for (short[] ligne : matrice_de_choix) {
 
-                Vector<Short> Vligne = new Vector<Short>();
+                final List<Short> Vligne = new ArrayList<Short>();
                 for (short s : ligne)
                     Vligne.add(s);
 
@@ -411,11 +386,11 @@ public class GenerateurEdt {
 
             int cpt = 0;
 
-            System.out.println("\nnb entretiens : " + nb_entretiens_et);
+            //System.out.println("\nnb entretiens : " + nb_entretiens_et);
 
             for (int i = 0; i < mesEntreprises.size() * nb_places_necessaires; ++i) {
 
-                XSSFRow rowDeRemplissage = maFeuille.createRow(i+1);
+                final XSSFRow rowDeRemplissage = maFeuille.createRow(i+1);
 
                 for (int j = 0; j < this.nombreHoraires + 1; ++j) {
 
@@ -425,7 +400,7 @@ public class GenerateurEdt {
                     }
 
                     if (j == 0) {
-                        XSSFCell cellule_fusionee = rowDeRemplissage.createCell(0);
+                        final XSSFCell cellule_fusionee = rowDeRemplissage.createCell(0);
 
                         cellule_fusionee.setCellValue(mesEntreprises.get(indexEntreprises).getNom_en());
 
@@ -433,7 +408,7 @@ public class GenerateurEdt {
                         cellule_fusionee.getSheet().autoSizeColumn(cellule_fusionee.getColumnIndex());
                         continue;
                     }
-                    XSSFCell cellDeRemplissage = rowDeRemplissage.createCell(j);
+                    final XSSFCell cellDeRemplissage = rowDeRemplissage.createCell(j);
                     cellDeRemplissage.setCellValue(" ");
                     cellDeRemplissage.setCellStyle(texte);
                     if ((i+1) % nb_places_necessaires == 0) cellDeRemplissage.setCellStyle(dernieresCellules);
@@ -444,17 +419,12 @@ public class GenerateurEdt {
 
             }
 
-            System.out.println(mesCellulesFusionnees.toString());
-
-            boolean parcours_normal = true;
+            //System.out.println(mesCellulesFusionnees.toString());
             //int debut = mesCellulesFusionnees.get(0).getFirstColumn() + 1;
-            Random aleaEtu = new Random();
+            final Random aleaEtu = new Random();
 
             //entiers qui donnent les indexs des étudiants intéréssés par l'entreprise
-            ArrayList<Integer> etudiants_interesses = new ArrayList<>(5);
-
-            //index de l'etudiant a placer
-            int i_etudiant;
+            final List<Integer> etudiants_interesses = new ArrayList<>(5);
 
             //pour toutes les entreprises
             for (int i_entreprise = 0 ; i_entreprise < mesEntreprises.size(); ++i_entreprise){
@@ -466,14 +436,14 @@ public class GenerateurEdt {
                     }
                 }
 
-                System.out.println(etudiants_interesses.toString());
+                //System.out.println(etudiants_interesses.toString());
 
                 while(etudiants_interesses.size() != 0) {
-                    int indice = aleaEtu.nextInt(etudiants_interesses.size());
-                    i_etudiant = etudiants_interesses.get(indice);
-
+                    final int indice = aleaEtu.nextInt(etudiants_interesses.size());
+                    //index de l'etudiant a placer
+                    final int i_etudiant = etudiants_interesses.get(indice);
                     placerEtudiant(i_etudiant, i_entreprise, mesCellulesFusionnees, maFeuille);
-                    System.out.println();
+                    //System.out.println();
                     etudiants_interesses.remove(indice);
                 }//while(etudiants_interesses.size() != 0)
 
@@ -492,18 +462,17 @@ public class GenerateurEdt {
         // création de l'edt des étudiants //
         /////////////////////////////////////
 
-            XSSFSheet feuille_et = ExcelEntreprises.createSheet("Etudiants");
+            final XSSFSheet feuille_et = ExcelEntreprises.createSheet("Etudiants");
 
             //on fait le header
-            XSSFRow mesHoraires_et = feuille_et.createRow(0);
-            XSSFCell A1_et = mesHoraires_et.createCell(0);
+            final XSSFRow mesHoraires_et = feuille_et.createRow(0);
+            final XSSFCell A1_et = mesHoraires_et.createCell(0);
             A1_et.setCellValue("Étudiants");
             A1_et.setCellStyle(titres);
 
             for (int h = 1; h < this.nombreHoraires + 1; ++h) {
-                XSSFCell horaire = mesHoraires_et.createCell(h);
-                CellAddress AdresseHoraire = new CellAddress(maFeuille.getRow(0).getCell(h));
-                horaire.setCellFormula("REPT(" + maFeuille.getSheetName() + "!" + AdresseHoraire.toString() + ", 1)");
+                final XSSFCell horaire = mesHoraires_et.createCell(h);
+                horaire.setCellFormula("REPT(" + maFeuille.getSheetName() + "!" + new CellAddress(maFeuille.getRow(0).getCell(h)).toString() + ", 1)");
                 horaire.setCellStyle(titres);
             }
 
@@ -545,21 +514,21 @@ public class GenerateurEdt {
                     if (maFeuille.getRow(y).getCell(h).getStringCellValue().isEmpty() || maFeuille.getRow(y).getCell(h).getStringCellValue().isBlank())
                         continue;
 
-                    String étudiant = maFeuille.getRow(y).getCell(h).getStringCellValue();
-                    String entreprise = maFeuille.getRow(y).getCell(0).getStringCellValue();
-
                     int y2 = 1;
                     // on défile les lignes jusqu'à ce qu'on arrive à l'étudiant concerné
-                    for (; y2 < feuille_et.getLastRowNum() && !(feuille_et.getRow(y2).getCell(0).getStringCellValue().equals(étudiant)); ++y2);
+                    //maFeuille.getRow(y).getCell(h).getStringCellValue() = Nom etudiant
+                    for (; y2 < feuille_et.getLastRowNum() && 
+                    		!(feuille_et.getRow(y2).getCell(0).getStringCellValue().equals(maFeuille.getRow(y).getCell(h).getStringCellValue())); ++y2);
 
                     //et on place l'entreprise
-                    feuille_et.getRow(y2).getCell(h).setCellValue(entreprise);
+                    //maFeuille.getRow(y).getCell(0).getStringCellValue() = nom entreprise
+                    feuille_et.getRow(y2).getCell(h).setCellValue(maFeuille.getRow(y).getCell(0).getStringCellValue());
                 }
 
                 feuille_et.autoSizeColumn(h);
             }
 
-            FileOutputStream fileOut = new FileOutputStream(EDTentreprises);
+            final FileOutputStream fileOut = new FileOutputStream(EDTentreprises);
             ExcelEntreprises.write(fileOut);
             ExcelEntreprises.close();
             fileOut.close();
